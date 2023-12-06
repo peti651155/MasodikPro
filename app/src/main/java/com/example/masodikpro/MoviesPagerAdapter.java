@@ -14,13 +14,14 @@ import java.util.ArrayList;
 
 public class MoviesPagerAdapter extends RecyclerView.Adapter<MoviesPagerAdapter.ViewHolder> {
 
-    private final ArrayList<Movie> movies;
+    private ArrayList<Movie> movies;
     private int currentMovieIndex;
 
-    public MoviesPagerAdapter(ArrayList<Movie> movies) {
-        this.movies = movies;
+    public MoviesPagerAdapter() {
+        this.movies = new ArrayList<>();
         this.currentMovieIndex = 0;
     }
+
 
     @NonNull
     @Override
@@ -58,12 +59,24 @@ public class MoviesPagerAdapter extends RecyclerView.Adapter<MoviesPagerAdapter.
         currentMovieIndex = (currentMovieIndex + 1) % movies.size();
         notifyDataSetChanged();
     }
-
+    public void updateMovies(ArrayList<Movie> newMovies) {
+        movies = newMovies;
+        currentMovieIndex = 0; // Visszaállítjuk az indexet
+        notifyDataSetChanged();
+    }
     public void onPreviousMovie() {
         if (movies.isEmpty()) {
             return;
         }
         currentMovieIndex = (currentMovieIndex - 1 + movies.size()) % movies.size();
+        notifyDataSetChanged();
+    }
+
+    public void removeAt(int adapterPosition) {
+        if (adapterPosition < 0 || adapterPosition >= movies.size()) {
+            return;
+        }
+        movies.remove(adapterPosition);
         notifyDataSetChanged();
     }
 

@@ -1,6 +1,5 @@
 package com.example.masodikpro;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -10,6 +9,11 @@ import android.widget.RatingBar;
 import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -24,6 +28,11 @@ public class MainActivity extends AppCompatActivity {
     private Spinner genreSpinner;
     private ArrayList<String> genreNames = new ArrayList<>();
     private Map<String, Integer> genreMap = new HashMap<>();
+    private RecyclerView recyclerViewMovies;
+    private MoviesPagerAdapter adapter; // A MovieDetailsActivity-ből áthozott adapter
+    private CardView cardViewMoviesList;
+    private ArrayList<Movie> movies = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,10 +56,43 @@ public class MainActivity extends AppCompatActivity {
         ratingBar.setNumStars(10);
         ratingBar.setStepSize(0.5f);
 
+        recyclerViewMovies = findViewById(R.id.recyclerViewMovies);
+        cardViewMoviesList = findViewById(R.id.cardViewMoviesList);
+
+        recyclerViewMovies.setLayoutManager(new LinearLayoutManager(this));
+
+        // Módosított sor: most már nincs szükség argumentumra
+        adapter = new MoviesPagerAdapter();
+
+        recyclerViewMovies.setAdapter(adapter);
+
+        // Swipe funkció hozzáadása
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                adapter.removeAt(viewHolder.getAdapterPosition());
+            }
+        });
+
+        itemTouchHelper.attachToRecyclerView(recyclerViewMovies);
+
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchMovies();
+                searchMovies(); // Ezt a metódust kell módosítani, hogy frissítse az adaptert a lekért filmekkel
+                cardViewMoviesList.setVisibility(View.VISIBLE);
+            }
+        });
+        Button backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cardViewMoviesList.setVisibility(View.GONE);
             }
         });
     }
@@ -102,13 +144,14 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    if (!movies.isEmpty()) {
-                        Intent intent = new Intent(MainActivity.this, MovieDetailsActivity.class);
-                        intent.putExtra("MOVIES_LIST", movies);
-                        startActivity(intent);
-                    } else {
-                        runOnUiThread(() -> Toast.makeText(MainActivity.this, "Nem található film a megadott szűrőkkel.", Toast.LENGTH_LONG).show());
-                    }
+                    runOnUiThread(() -> {
+                        if (!movies.isEmpty()) {
+                            adapter.updateMovies(movies); // Frissítsd az adaptert az új filmekkel
+                            cardViewMoviesList.setVisibility(View.VISIBLE); // Tedd láthatóvá a CardView-t
+                        } else {
+                            Toast.makeText(MainActivity.this, "Nem található film a megadott szűrőkkel.", Toast.LENGTH_LONG).show();
+                        }
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                     runOnUiThread(() -> Toast.makeText(MainActivity.this, "Hiba történt az adatok betöltésekor.", Toast.LENGTH_LONG).show());

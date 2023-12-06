@@ -25,7 +25,7 @@ public class MovieDetailsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Létrehozunk és beállítunk egy adaptert
-        MoviesPagerAdapter adapter = new MoviesPagerAdapter(movies);
+        MoviesPagerAdapter adapter = new MoviesPagerAdapter();
         recyclerView.setAdapter(adapter);
         ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
